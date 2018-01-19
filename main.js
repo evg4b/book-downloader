@@ -1,60 +1,51 @@
-const electron = require('electron')
-// Module to control application life.
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
+const electron = require('electron');
 
-const path = require('path')
-const url = require('url')
+const app = electron.app;
+const BrowserWindow = electron.BrowserWindow;
+const Menu = electron.Menu;
+const MenuItem = electron.MenuItem;
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+const path = require('path');
+const url = require('url');
+let mainWindow;
 
 function createWindow () {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600})
-
-  // and load the index.html of the app.
-  mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'index.html'),
-    protocol: 'file:',
-    slashes: true
-  }))
-
-  // Open the DevTools.
-  // mainWindow.webContents.openDevTools()
-
-  // Emitted when the window is closed.
-  mainWindow.on('closed', function () {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
-    mainWindow = null
-  })
+    mainWindow = new BrowserWindow({
+        width: 800,
+        height: 600,
+        webPreferences: {
+            preload: __dirname + '/downloader.js'
+        }
+    });
+    const menu = new Menu();
+    menu.append(new MenuItem({label: '<- Назад', click() { console.log('item 1 clicked') }, }))
+    menu.append(new MenuItem({label: '~ Обновить', click() { console.log('item 2 clicked') }}))
+    menu.append(new MenuItem({label: 'Вперед ->', click() { console.log('item 3 clicked') }}))
+    menu.append(new MenuItem({type: 'separator'}))
+    menu.append(new MenuItem({label: 'Скачать всю книгу', click() {
+        mainWindow.webContents.send('asynchronous-message', 123123);
+    }}))
+    menu.append(new MenuItem({label: 'Скачать дипазон страниц', click() { console.log('item 3 clicked') }}))
+    mainWindow.setMenu(menu);
+    //https://biblioclub.ru/index.php?page=book_view_red&book_id=429786
+    var initUrl = url.format({ host: 'biblioclub.ru', protocol: 'https:', path: '/index.php?page=main_ub_red&needauth=1', slashes: true });
+    mainWindow.loadURL(initUrl);
+    mainWindow.webContents.openDevTools();
+    mainWindow.on('closed', function () {
+        mainWindow = null
+    });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.on('ready', createWindow)
 
-// Quit when all windows are closed.
 app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
 
 app.on('activate', function () {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (mainWindow === null) {
-    createWindow()
-  }
-})
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+    if (mainWindow === null) {
+        createWindow();
+    }
+});
