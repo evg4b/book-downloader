@@ -1,5 +1,5 @@
 // In renderer process (web page).
-const {ipcRenderer} = require('electron')
+const { ipcRenderer } = require('electron');
 
 ipcRenderer.on('asynchronous-message', (event, arg) => {
   console.log(arg) // prints "pong"
