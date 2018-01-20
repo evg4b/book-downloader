@@ -4,7 +4,6 @@ const {
     Menu,
     MenuItem
 } = require('electron');
-
 const path = require('path');
 const url = require('url');
 let mainWindow;
@@ -32,7 +31,7 @@ app.on('ready', () => {
     }));
     menu.append(new MenuItem({
         label: 'Вперед ->',
-        click() {
+        click: () => {
             console.log('item 3 clicked')
         }
     }));
@@ -41,13 +40,13 @@ app.on('ready', () => {
     menu.append(new MenuItem({
         label: 'Скачать всю книгу',
         click: () => {
-            mainWindow.webContents.send('asynchronous-message', 123123);
+            mainWindow.webContents.send('download-all');
         }
     }));
     menu.append(new MenuItem({
         label: 'Скачать дипазон страниц',
         click: () => {
-            console.log('item 3 clicked')
+            mainWindow.webContents.send('download-range');
         }
     }));
     mainWindow.setMenu(menu);
