@@ -5,6 +5,7 @@ const {
     MenuItem
 } = require('electron');
 const path = require('path');
+const axios = require('axios');
 const url = require('url');
 let mainWindow;
 
@@ -19,35 +20,25 @@ app.on('ready', () => {
     const menu = new Menu();
     menu.append(new MenuItem({
         label: '<- Назад',
-        click: () => {
-            console.log('item 1 clicked')
-        },
+        click: () => mainWindow.webContents.send('back')
     }));
     menu.append(new MenuItem({
         label: '~ Обновить',
-        click: () => {
-            console.log('item 2 clicked')
-        }
+        click: () => mainWindow.webContents.send('refresh')
     }));
     menu.append(new MenuItem({
         label: 'Вперед ->',
-        click: () => {
-            console.log('item 3 clicked')
-        }
+        click: () => mainWindow.webContents.send('forward')
     }));
     menu.append(new MenuItem({ type: 'separator' }));
     
     menu.append(new MenuItem({
         label: 'Скачать всю книгу',
-        click: () => {
-            mainWindow.webContents.send('download-all');
-        }
+        click: () => mainWindow.webContents.send('download-all', axios)
     }));
     menu.append(new MenuItem({
         label: 'Скачать дипазон страниц',
-        click: () => {
-            mainWindow.webContents.send('download-range');
-        }
+        click: () => mainWindow.webContents.send('download-range', axios)
     }));
     mainWindow.setMenu(menu);
     //https://biblioclub.ru/index.php?page=book_view_red&book_id=429786
@@ -57,6 +48,7 @@ app.on('ready', () => {
     mainWindow.on('closed', function () {
         mainWindow = null
     });
+    console.log(axios)
 });
 
 app.on('window-all-closed', () => {
