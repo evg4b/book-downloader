@@ -33,20 +33,29 @@ app.on('ready', () => {
         click: () => mainWindow.webContents.send('forward')
     }));
     menu.append(new MenuItem({ type: 'separator' }));
-    
+
     menu.append(new MenuItem({
         label: 'Скачать всю книгу',
         click: () => mainWindow.webContents.send('download-all', axios)
+    }));
+    menu.append(new MenuItem({
+        label: 'Скачать lbfgfpjy',
+        click: () => mainWindow.webContents.send('download-range', axios)
     }));
     mainWindow.setMenu(menu);
     //mainWindow.loadURL('https://biblioclub.ru/index.php?page=main_ub_red&needauth=1');
     mainWindow.loadURL('https://biblioclub.ru/index.php?page=book_view_red&book_id=429786');
     mainWindow.webContents.openDevTools();
-    mainWindow.on('closed', function () {
+    mainWindow.on('closed', () => {
         mainWindow = null
     });
     mainWindow.webContents.on('new-window', (event, url, frameName, disposition, options, additionalFeatures) => {
-        console.log(event, url, frameName, disposition, options, additionalFeatures);
+        console.log(event);
+        console.log(url);
+        console.log(frameName);
+        console.log(disposition);
+        console.log(options)
+        console.log(additionalFeatures);
         if (frameName === 'modal') {
             // open window as modal
             event.preventDefault();

@@ -1,7 +1,7 @@
 const path = require('path');
 const url = require('url');
-const mime = require('mime-types')
-const { ipcRenderer, remote, BrowserWindow } = require('electron');
+const mime = require('mime-types');
+const { ipcRenderer, remote } = require('electron');
 const _ = require('lodash');
 const QueryString = require('querystring');
 const tress = require('tress');
@@ -19,6 +19,7 @@ ipcRenderer.on('forward', () => window.history.forward());
 ipcRenderer.on('refresh', () => window.location.reload());
 
 ipcRenderer.on('download-all', async () => {
+    console.log('on download all');
     const bookInfo = getBookInformation();
     if(bookInfo) {
         const path = await getFolder()
@@ -33,6 +34,11 @@ ipcRenderer.on('download-all', async () => {
     } else {
         alert('Не ужаеться найьти книгу на этой старанице');
     }
+});
+
+
+ipcRenderer.on('download-range', async () => {
+    promte();
 });
 
 document.addEventListener("DOMContentLoaded", function(event) {
@@ -83,7 +89,7 @@ async function getBookPage(job) {
     return axios.get(url.resolve(location.origin, job.data.url), {
         responseType: 'blob'
     })
-    .then(function (response) {
+    .then((response) => {
         var fileReader = new FileReader();
         fileReader.onload = function () {
             fs.writeFileSync(getFilePath(job.page, job.path), Buffer(new Uint8Array(this.result)))
@@ -105,11 +111,6 @@ function getFilePath(page, dir, headers) {
 
 function promte() {
     // renderer process (mainWindow)
-    let modal = window.open(path.join(__dirname, 'dialogs/promt.html'), 'modal')
-    console.log(modal)
-
-    let top = new BrowserWindow()
-    let child = new BrowserWindow({parent: top})
-    child.show()
-    top.show()
+    let modal = window.open(path.join(__dirname, 'dialogs/download.html'), 'modal')
+    console.log(modal);
 }
