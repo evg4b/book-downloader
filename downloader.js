@@ -12,7 +12,7 @@ const axios = require('axios');
 
 const q = tress(function(job, done){
     job.action(job).then(done);
-}, 3);
+}, 1);
 
 ipcRenderer.on('back', () => window.history.back());
 ipcRenderer.on('forward', () => window.history.forward());
@@ -45,22 +45,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 });
 
 
-function getBookInformation() {
-    const bookId = _.get(QueryString.parse(location.search), 'book_id');
-    const pn_last = _.first(jQuery("#pn_last"));
-    if(bookId && pn_last) {
-        const regexp = /toPage\s*\(\s*(\d*)\s*\)/;
-        const pageMatcher = _.get($(pn_last).data( "events" ), 'click')
-            .map((item) => item.handler.toString().match(regexp))
-            .find((item) => !!item);
-        const maxPage = Number(pageMatcher[1]);
-        return {
-            maxPage: maxPage,
-            bookId: bookId
-        };
-    }
-    return  null;
-}
 
 async function getBookPageDesc(job) {
     const resourceUrl = new url.URL(url.resolve(location.origin, '/services/books.php'));
