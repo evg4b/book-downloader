@@ -8,6 +8,10 @@ ipcRenderer.on('request', () =>
         data: getBookInformation()
     }));
 
+ipcRenderer.on('download', (evend, data) => {
+    console.log('evend')
+});
+
 function getBookInformation() {
     const bookId = _.get(QueryString.parse(location.search), 'book_id');
     const pn_last = _.first(jQuery("#pn_last"));

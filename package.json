@@ -28,7 +28,7 @@
     "lodash": "^4.17.5",
     "mime-types": "^2.1.18",
     "needle": "^2.1.2",
-    "semantic-ui": "^2.2.14",
+    "semantic-ui": "^2.3.0",
     "ssl-root-cas": "^1.2.5",
     "trees": "0.0.4",
     "tress": "^1.0.5"

@@ -8,12 +8,22 @@ const configs = {
     concurrency: 2,
     timeout: 100
 };
+let bookInfo = null;
 
 $('#site').dimmer({ closable: false });
 $('#go').on('click', () => webview.loadURL($(urlInput).val()));
 $('#refresh').on('click', () => webview.reload());
 $('#back').on('click', () => webview.goBack());
 $('#forward').on('click', () => webview.goForward());
+$('#download').on('click', () => webview.send('download', () => {
+    const range = validatePageRange();
+    if(range) {
+
+    } else {
+        alert('Проверьте диапазон страниц')
+    }
+}));
+$('#download').focusout(() => !validatePageRange() && resetPageRange());
 _.each(_.keys(configs), (item) => {
     const def = _.get(configs, item);
     $('#' + item).val(def);
@@ -29,11 +39,41 @@ webview.addEventListener('did-stop-loading', () => $('#site').dimmer('hide'));
 webview.addEventListener("dom-ready", () => webview.send("request"));
 webview.addEventListener('ipc-message', (event) => ipcEmitter.emit(event.channel.name, event.channel.data));
 ipcEmitter.on('request', (data) => {
+    bookInfo = data;
     if(data) {
         $('#download').removeClass('disabled');
-        $('#pages').val('1-' + data.maxPage);
     } else {
         $('#pages').val(null);
         $('#download').addClass('disabled');
     }
 });
+ipcEmitter.on('download-success', (data) => {
+    if(data) {
+        $('#download').removeClass('disabled');
+        resetPageRange();
+    } else {
+        $('#pages').val(null);
+        $('#download').addClass('disabled');
+    }
+});
+
+function validatePageRange() {
+    const machesRange = $('#pages').val().match(/^\s*(\d*)\s*-\s*(\d*)\s*$/);
+    const machesSingle = $('#pages').val().match(/^\s*(\d*)\s*$/);
+    if(isCorrectRange(machesRange, 1)) {
+        return {
+            from: Number(_.get(maches, 1)),
+            to: Number(_.get(maches, 2))
+        }
+    } else {
+        return null;
+    }
+}
+
+function isCorrectRange(range) {
+    return _.get(range, 1) && _.get(range, 2) && _.get(range, 1) <= _.get(range, 2);
+}
+
+function resetPageRange() {
+    $('#pages').val('1-' + bookInfo.maxPage);
+}
