@@ -15,14 +15,17 @@ $('#go').on('click', () => webview.loadURL($(urlInput).val()));
 $('#refresh').on('click', () => webview.reload());
 $('#back').on('click', () => webview.goBack());
 $('#forward').on('click', () => webview.goForward());
-$('#download').on('click', () => webview.send('download', () => {
+$('#download').on('click', () => {
     const range = validatePageRange();
     if(range) {
-
+        webview.send('download', {
+            range: range,
+            configs: configs
+        });
     } else {
         alert('Проверьте диапазон страниц')
     }
-}));
+});
 $('#download').focusout(() => !validatePageRange() && resetPageRange());
 _.each(_.keys(configs), (item) => {
     const def = _.get(configs, item);
@@ -42,19 +45,14 @@ ipcEmitter.on('request', (data) => {
     bookInfo = data;
     if(data) {
         $('#download').removeClass('disabled');
+        resetPageRange();
     } else {
         $('#pages').val(null);
         $('#download').addClass('disabled');
     }
 });
 ipcEmitter.on('download-success', (data) => {
-    if(data) {
-        $('#download').removeClass('disabled');
-        resetPageRange();
-    } else {
-        $('#pages').val(null);
-        $('#download').addClass('disabled');
-    }
+    console.log(data)
 });
 
 function validatePageRange() {
@@ -62,12 +60,21 @@ function validatePageRange() {
     const machesSingle = $('#pages').val().match(/^\s*(\d*)\s*$/);
     if(isCorrectRange(machesRange, 1)) {
         return {
-            from: Number(_.get(maches, 1)),
-            to: Number(_.get(maches, 2))
+            from: Number(_.get(machesRange, 1)),
+            to: Number(_.get(machesRange, 2))
+        }
+    } else if (isCorrectSingle(machesSingle)) {
+        return {
+            from: Number(_.get(machesSingle, 1)),
+            to: Number(_.get(machesSingle, 1))
         }
     } else {
         return null;
     }
+}
+
+function isCorrectSingle(range) {
+    return !!_.get(range, 1);
 }
 
 function isCorrectRange(range) {

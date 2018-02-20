@@ -68,7 +68,6 @@ async function getBookPageDesc(job) {
     }
 }
 
-
 async function getBookPage(job) {
     return axios.get(url.resolve(location.origin, job.data.url), {
         responseType: 'blob'
