@@ -68,9 +68,9 @@ ipcEmitter.on('download-success', (data) => {
     $('#site').dimmer('hide');
 });
 
-// ipcEmitter.on('debug', (data) => {
-//     console.log(data)
-// });
+ipcEmitter.on('debug', (data) => {
+    console.log(data)
+});
 
 ipcEmitter.on('page-downloaded', (data) => {
     const out = fs.createWriteStream(getFilePath(data.page, data.path));

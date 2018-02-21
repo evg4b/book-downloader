@@ -10,6 +10,17 @@ const mime = require('mime-types');
 
 let q = null;
 
+document.addEventListener("DOMContentLoaded", () => {
+    clearLinks();
+    document.addEventListener('DOMNodeInserted', clearLinks);
+});
+
+function clearLinks() {
+    _.forEach(jQuery('a'), (a) => {
+        jQuery(a).removeAttr('target');
+    });
+}
+
 ipcRenderer.on('request', () =>
     ipcRenderer.sendToHost({
         name: 'request',
