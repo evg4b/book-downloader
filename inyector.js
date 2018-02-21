@@ -6,6 +6,8 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const needle = require('needle');
+const mime = require('mime-types');
 
 let q = null;
 
@@ -27,22 +29,53 @@ ipcRenderer.on('download', async (event, data) => {
     const path = await getFolder()
     if(path) {
         q = tress(function(job, done){
-            ipcRenderer.sendToHost({
-                name: 'download-success',
-                data: job
-            });
             job.action(job).then(setTimeout(done, data.configs.timeout));
         }, data.configs.concurrency);
+        q.drain = () => {
+            ipcRenderer.sendToHost({name: 'download-success'});
+        };
+        const array = [];
+        const bookInfo = getBookInformation();
         for(let i = data.range.from; i <= data.range.to; i++) {
-            q.push({
-                action: getBookPageDesc,
-                bookInfo: getBookInformation(),
-                page: i,
-                path: path
-            });
+            array.push(i);
         }
+        ipcRenderer.sendToHost({
+            name: 'debug',
+            data: _.chunk(array, 20)
+        });
+        _.forEach(_.chunk(array, 20), (item) => q.push({
+            action: createTasks,
+            bookInfo: bookInfo,
+            array: item,
+            path: path
+        }));
+    } else {
+        ipcRenderer.sendToHost({ name: 'download-success' });
     }
 });
+
+ipcRenderer.on('cancel', async (event, data) => {
+    q.kill();
+    ipcRenderer.sendToHost({ name: 'download-success' });
+});
+
+async  function createTasks(data) {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.sendToHost({
+            name: 'debug',
+            data: data
+        });
+        _.forEach(data.array, page =>  {
+            q.push({
+                action: getBookPageDesc,
+                bookInfo: data.bookInfo,
+                page: page,
+                path: data.path
+            });
+        });
+        resolve();
+    });
+}
 
 function getBookInformation() {
     const bookId = _.get(QueryString.parse(location.search), 'book_id');
@@ -65,12 +98,12 @@ async function getFolder() {
     return new Promise((resolve) => remote.dialog.showOpenDialog({ properties: ['openDirectory'] }, (files) => resolve(_.first(files))));
 }
 
-function getFilePath(page, dir, headers) {
-    const fileName = ('0000000000' + page.toString()).slice(-10) + '.' + mime.extension('image/png');
-    return path.resolve(dir, fileName);
-}
 
 async function getBookPageDesc(job) {
+    ipcRenderer.sendToHost({
+        name: 'debug',
+        data: job
+    });
     const resourceUrl = new url.URL(url.resolve(location.origin, '/services/books.php'));
     resourceUrl.search = QueryString.stringify({
         books_action: 'get_page_info',
@@ -79,10 +112,6 @@ async function getBookPageDesc(job) {
     });
     try {
         const response = await new Promise((resolve, reject) => $.ajax(resourceUrl.toString()).then((r) => resolve(JSON.parse(r))));
-        ipcRenderer.sendToHost({
-            name: 'download-success',
-            data: response
-        });
         q.push({
             action: getBookPage,
             data: response,
@@ -96,25 +125,36 @@ async function getBookPageDesc(job) {
 }
 
 async function getBookPage(job) {
-    ipcRenderer.sendToHost({
-        name: 'download-success',
-        data: url.resolve('http://', job.data.url)
-    });
-    return await axios.get(url.resolve('http://', job.data.url), {
-        responseType: 'blob'
-    })
-    .then((response) => {
-        var fileReader = new FileReader();
-        fileReader.onload = function () {
-            fs.writeFileSync(getFilePath(job.page, job.path), Buffer(new Uint8Array(this.result)))
-        };
-        fileReader.readAsArrayBuffer(response.data);
-        ipcRenderer.sendToHost({
-            name: 'download-success',
-            data: getFilePath(job.page, job.path)
-        });
-        return response;
-    })
-    .catch(function (error) {
-    });
+    const out = fs.createWriteStream(getFilePath(job.page, job.path));
+    return new Promise((done) => needle.get(job.data.url).pipe(out).on('finish', done));
+    // const response = await axios.get(url.resolve('https://', job.data.url), {
+    //     responseType: 'blob'
+    // });
+    // ipcRenderer.sendToHost({
+    //     name: 'download-success',
+    //     data: {
+    //         name: 'true',
+    //         data: response
+    //     }
+    // });
+    // const fileReader = new FileReader();
+    // fileReader.onload = function () {
+    //     fs.writeFileSync(getFilePath(job.page, job.path), Buffer(new Uint8Array(this.result)))
+    //     ipcRenderer.sendToHost({
+    //         name: 'download-success',
+    //         data: {
+    //             name: 'true',
+    //             data: {
+    //                 a: Buffer(new Uint8Array(this.result)),
+    //                 b
+    //             }
+    //         }
+    //     });
+    // };
+    // fileReader.readAsArrayBuffer(response.data);
+}
+
+function getFilePath(page, dir) {
+    const fileName = ('0000000000' + page.toString()).slice(-10) + '.' + mime.extension('image/png');
+    return path.resolve(dir, fileName);
 }

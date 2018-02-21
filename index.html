@@ -71,22 +71,23 @@
                     <i class="download icon"></i>
                 </button>
             </div>
+            <hr class="space">
+            <button class="negative fluid ui button disabled" id="cancel">Отмена</button>
             <h4 class="ui horizontal divider header">
                 <i class="settings icon"></i>
                 Настройки
             </h4>
-            <div class="ui labeled input">
+            <div class="ui labeled fluid input">
                 <div class="ui label">Потоки</div>
                 <input type="text" placeholder="Количество потоков" id="concurrency">
             </div>
             <hr class="space">
-            <div class="ui labeled input">
+            <div class="ui labeled fluid input">
                 <div class="ui label">Зажержка</div>
                 <input type="text" placeholder="Вземя задержки" id="timeout">
             </div>
         </div>
     </div>
-
     <script>
       // You can also require other files to run in this process
       require('./renderer.js')

@@ -1,5 +1,11 @@
 const EventEmitter = require('events');
 const _ = require('lodash');
+const fs = require('fs');
+const path = require('path');
+const url = require('url');
+var needle = require('needle');
+const mime = require('mime-types');
+
 
 const webview = document.getElementById("myweb");
 const urlInput = document.getElementById("url");
@@ -11,6 +17,7 @@ const configs = {
 let bookInfo = null;
 
 $('#site').dimmer({ closable: false });
+$('body').dimmer({ closable: false });
 $('#go').on('click', () => webview.loadURL($(urlInput).val()));
 $('#refresh').on('click', () => webview.reload());
 $('#back').on('click', () => webview.goBack());
@@ -22,10 +29,14 @@ $('#download').on('click', () => {
             range: range,
             configs: configs
         });
+        disableCantrols();
+        $('#cancel').removeClass('disabled');
+        $('#site').dimmer('show');
     } else {
         alert('Проверьте диапазон страниц')
     }
 });
+$('#cancel').on('click', () => webview.send('cancel'));
 $('#download').focusout(() => !validatePageRange() && resetPageRange());
 _.each(_.keys(configs), (item) => {
     const def = _.get(configs, item);
@@ -52,7 +63,20 @@ ipcEmitter.on('request', (data) => {
     }
 });
 ipcEmitter.on('download-success', (data) => {
+    enableCantrols();
+    $('#cancel').addClass('disabled');
+    $('#site').dimmer('hide');
+});
+
+
+ipcEmitter.on('debug', (data) => {
     console.log(data)
+});
+
+ipcEmitter.on('page-downloaded', (data) => {
+    console.log(data)
+    const out = fs.createWriteStream(getFilePath(data.page, data.path));
+    needle.get(data.data.url).pipe(out);
 });
 
 function validatePageRange() {
@@ -83,4 +107,24 @@ function isCorrectRange(range) {
 
 function resetPageRange() {
     $('#pages').val('1-' + bookInfo.maxPage);
+}
+
+function disableCantrols() {
+    $('#go').addClass('disabled');
+    $('#back').addClass('disabled');
+    $('#refresh').addClass('disabled');
+    $('#forward').addClass('disabled');
+    $('#download').addClass('disabled');
+    $('#site .ui.loader').addClass('text');
+    $('#site .ui.loader').text('Загрузка книги');
+}
+
+function enableCantrols() {
+    $('#go').removeClass('disabled');
+    $('#back').removeClass('disabled');
+    $('#refresh').removeClass('disabled');
+    $('#forward').removeClass('disabled');
+    $('#download').addClass('disabled');
+    $('#site .ui.loader').removeClass('text');
+    $('#site .ui.loader').text(null);
 }
