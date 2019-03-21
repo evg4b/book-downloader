@@ -8,6 +8,9 @@ const mime = require('mime-types');
 
 
 const webview = document.getElementById("myweb");
+
+// webview.addEventListener("dom-ready", function(){ webview.openDevTools(); });
+
 const urlInput = document.getElementById("url");
 const ipcEmitter = new EventEmitter();
 const configs = {
@@ -47,6 +50,11 @@ _.each(_.keys(configs), (item) => {
         $('#' + item).val(_.get(configs, item));
     });
 });
+$('.site-link').on('click', (event) => {
+    webview.send('navigate', event.target.href);
+    event.preventDefault();
+});
+
 webview.addEventListener("will-navigate", (event) => $(urlInput).val(event.url));
 webview.addEventListener('did-start-loading', () => $('#site').dimmer('show'));
 webview.addEventListener('did-stop-loading', () => $('#site').dimmer('hide'));

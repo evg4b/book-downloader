@@ -7,6 +7,44 @@ const path = require('path');
 const url = require('url');
 const needle = require('needle');
 const mime = require('mime-types');
+const { convert } = require('convert-svg-to-png');
+const svg2png = require("svg2png");
+
+const modules = {
+    'biblio-online.ru': {
+        getBookInformation: async () => {
+            const bookId = window.content_id;
+            if(bookId) {
+                const dat = await getJson(`/viewer/getData/${bookId}`);
+                return {
+                    maxPage: dat.pages.count,
+                    bookId: bookId
+                }
+            }
+            throw new Error();
+        },
+        action: getBookPageOnline
+    },
+    'biblioclub.ru': {
+        getBookInformation: () => {
+            const bookId = _.get(QueryString.parse(location.search), 'book_id');
+            const pn_last = _.first(jQuery("#pn_last"));
+            if(bookId && pn_last) {
+                const regexp = /toPage\s*\(\s*(\d*)\s*\)/;
+                const pageMatcher = _.get(jQuery(pn_last).data( "events" ), 'click')
+                    .map((item) => item.handler.toString().match(regexp))
+                    .find((item) => !!item);
+                const maxPage = Number(pageMatcher[1]);
+                return {
+                    maxPage: maxPage,
+                    bookId: bookId
+                };
+            }
+            return  null;
+        },
+        action: getBookPageDesc
+    },
+};
 
 let q = null;
 
@@ -21,10 +59,10 @@ function clearLinks() {
     });
 }
 
-ipcRenderer.on('request', () =>
+ipcRenderer.on('request', async() =>
     ipcRenderer.sendToHost({
         name: 'request',
-        data: getBookInformation()
+        data: await getBookInformation()
     }));
 
 ipcRenderer.on('download', async (event, data) => {
@@ -37,11 +75,11 @@ ipcRenderer.on('download', async (event, data) => {
             ipcRenderer.sendToHost({name: 'download-success'});
         };
         const array = [];
-        const bookInfo = getBookInformation();
+        const bookInfo = await getBookInformation();
         for(let i = data.range.from; i <= data.range.to; i++) {
             array.push(i);
         }
-        _.forEach(_.chunk(array, 20), (item) => q.push({
+        _.forEach(_.chunk(array, 5), (item) => q.push({
             action: createTasks,
             bookInfo: bookInfo,
             array: item,
@@ -57,11 +95,17 @@ ipcRenderer.on('cancel', async (event, data) => {
     ipcRenderer.sendToHost({ name: 'download-success' });
 });
 
+ipcRenderer.on('navigate', async (event, href) => {
+    if (url.parse(location.href).pathname !== url.parse(href).pathname) {
+        location.href = href;
+    }
+});
+
 async  function createTasks(data) {
     return new Promise((resolve, reject) => {
         _.forEach(data.array, page =>  {
             q.push({
-                action: getBookPageDesc,
+                action: getCurrentModule().action,
                 bookInfo: data.bookInfo,
                 page: page,
                 path: data.path
@@ -71,21 +115,21 @@ async  function createTasks(data) {
     });
 }
 
-function getBookInformation() {
-    const bookId = _.get(QueryString.parse(location.search), 'book_id');
-    const pn_last = _.first(jQuery("#pn_last"));
-    if(bookId && pn_last) {
-        const regexp = /toPage\s*\(\s*(\d*)\s*\)/;
-        const pageMatcher = _.get(jQuery(pn_last).data( "events" ), 'click')
-            .map((item) => item.handler.toString().match(regexp))
-            .find((item) => !!item);
-        const maxPage = Number(pageMatcher[1]);
-        return {
-            maxPage: maxPage,
-            bookId: bookId
-        };
+async function getBookInformation() {
+    try {
+        return await getCurrentModule().getBookInformation();
+    } catch(e) {
+        console.error(e)
+        return null;
     }
-    return  null;
+}
+
+function getCurrentModule() {
+    const { host } = url.parse(location.href);
+    if(modules[host]) {
+        return modules[host];
+    }
+    throw Error('Not found module');
 }
 
 async function getFolder() {
@@ -114,11 +158,41 @@ async function getBookPageDesc(job) {
     }
 }
 
+async function getBookPageOnline(job) {
+    const svg = await loadSvg(job);
+    await writeSvgToPng(svg, job);
+}
+
+function writeSvgToPng(svg, job) {
+    return new Promise((resolve, reject) => {
+        svg2png(svg, { width: 726*5, height: 1115*5 })
+            .then(buffer => {
+                fs.writeFile(getFilePath(job.page, job.path), buffer, resolve)
+            }).catch(reject);
+    });
+}
+
+function loadSvg(job) {
+    return new Promise((done, error) => {
+        needle('get', url.resolve(location.href, `/viewer/getPage/${job.bookInfo.bookId}/${job.page}`))
+            .then(function(resp) { done(resp.body) })
+            .catch(function(err) { error(err) });
+    });
+}
+
 async function getBookPage(job) {
     return new Promise((done) => needle
         .get(job.data.url)
         .pipe(fs.createWriteStream(getFilePath(job.page, job.path)))
         .on('finish', done));
+}
+
+function getJson(path) {
+    return new Promise((done, error) => {
+        needle('post', url.resolve(location.href, path), {}, { json: true })
+            .then(function(resp) { done(resp.body) })
+            .catch(function(err) { error(err) })
+    });
 }
 
 function getFilePath(page, dir) {

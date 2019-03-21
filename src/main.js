@@ -19,7 +19,7 @@ app.on('ready', () => {
             slashes: true
         })
     );
-    //mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 });
 
 app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit());
