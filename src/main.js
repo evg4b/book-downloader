@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 const url = require('url');
 
@@ -11,7 +11,10 @@ app.on('ready', () => {
         minHeight: 500,
         minWidth: 840
     });
-    mainWindow.setMenu(null);
+    mainWindow.setMenu(Menu.buildFromTemplate([
+        { label: 'Main DevTools', click: () => mainWindow.webContents.openDevTools() },
+        { label: 'VebView DevTools' }
+    ]));
     mainWindow.loadURL(
         url.format({
             pathname: path.join(__dirname, "index.html"),
@@ -19,7 +22,6 @@ app.on('ready', () => {
             slashes: true
         })
     );
-    // mainWindow.webContents.openDevTools();
 });
 
 app.on('window-all-closed', () => process.platform !== 'darwin' && app.quit());

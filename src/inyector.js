@@ -1,4 +1,4 @@
-const {ipcRenderer, remote} = require('electron');
+const { ipcRenderer, remote } = require('electron');
 const _ = require('lodash');
 const QueryString = require('querystring');
 const tress = require('tress');
@@ -7,14 +7,13 @@ const path = require('path');
 const url = require('url');
 const needle = require('needle');
 const mime = require('mime-types');
-const { convert } = require('convert-svg-to-png');
 const svg2png = require("svg2png");
 
 const modules = {
     'biblio-online.ru': {
         getBookInformation: async () => {
             const bookId = window.content_id;
-            if(bookId) {
+            if (bookId) {
                 const dat = await getJson(`/viewer/getData/${bookId}`);
                 return {
                     maxPage: dat.pages.count,
@@ -29,9 +28,9 @@ const modules = {
         getBookInformation: () => {
             const bookId = _.get(QueryString.parse(location.search), 'book_id');
             const pn_last = _.first(jQuery("#pn_last"));
-            if(bookId && pn_last) {
+            if (bookId && pn_last) {
                 const regexp = /toPage\s*\(\s*(\d*)\s*\)/;
-                const pageMatcher = _.get(jQuery(pn_last).data( "events" ), 'click')
+                const pageMatcher = _.get(jQuery(pn_last).data("events"), 'click')
                     .map((item) => item.handler.toString().match(regexp))
                     .find((item) => !!item);
                 const maxPage = Number(pageMatcher[1]);
@@ -40,7 +39,7 @@ const modules = {
                     bookId: bookId
                 };
             }
-            return  null;
+            return null;
         },
         action: getBookPageDesc
     },
@@ -59,7 +58,7 @@ function clearLinks() {
     });
 }
 
-ipcRenderer.on('request', async() =>
+ipcRenderer.on('request', async () =>
     ipcRenderer.sendToHost({
         name: 'request',
         data: await getBookInformation()
@@ -67,16 +66,16 @@ ipcRenderer.on('request', async() =>
 
 ipcRenderer.on('download', async (event, data) => {
     const path = await getFolder()
-    if(path) {
-        q = tress(function(job, done){
+    if (path) {
+        q = tress(function (job, done) {
             job.action(job).then(setTimeout(done, data.configs.timeout));
         }, data.configs.concurrency);
         q.drain = () => {
-            ipcRenderer.sendToHost({name: 'download-success'});
+            ipcRenderer.sendToHost({ name: 'download-success' });
         };
         const array = [];
         const bookInfo = await getBookInformation();
-        for(let i = data.range.from; i <= data.range.to; i++) {
+        for (let i = data.range.from; i <= data.range.to; i++) {
             array.push(i);
         }
         _.forEach(_.chunk(array, 5), (item) => q.push({
@@ -101,9 +100,9 @@ ipcRenderer.on('navigate', async (event, href) => {
     }
 });
 
-async  function createTasks(data) {
+async function createTasks(data) {
     return new Promise((resolve, reject) => {
-        _.forEach(data.array, page =>  {
+        _.forEach(data.array, page => {
             q.push({
                 action: getCurrentModule().action,
                 bookInfo: data.bookInfo,
@@ -118,7 +117,7 @@ async  function createTasks(data) {
 async function getBookInformation() {
     try {
         return await getCurrentModule().getBookInformation();
-    } catch(e) {
+    } catch (e) {
         console.error(e)
         return null;
     }
@@ -126,7 +125,7 @@ async function getBookInformation() {
 
 function getCurrentModule() {
     const { host } = url.parse(location.href);
-    if(modules[host]) {
+    if (modules[host]) {
         return modules[host];
     }
     throw Error('Not found module');
@@ -142,7 +141,7 @@ async function getBookPageDesc(job) {
     resourceUrl.search = QueryString.stringify({
         books_action: 'get_page_info',
         books_book: job.bookInfo.bookId,
-        books_page:  job.page,
+        books_page: job.page,
     });
     try {
         const response = await new Promise((resolve, reject) => $.ajax(resourceUrl.toString()).then((r) => resolve(JSON.parse(r))));
@@ -150,7 +149,7 @@ async function getBookPageDesc(job) {
             action: getBookPage,
             data: response,
             path: job.path,
-            page:  job.page
+            page: job.page
         });
         return response;
     } catch (error) {
@@ -165,7 +164,7 @@ async function getBookPageOnline(job) {
 
 function writeSvgToPng(svg, job) {
     return new Promise((resolve, reject) => {
-        svg2png(svg, { width: 726*5, height: 1115*5 })
+        svg2png(svg, { width: 726 * 5, height: 1115 * 5 })
             .then(buffer => {
                 fs.writeFile(getFilePath(job.page, job.path), buffer, resolve)
             }).catch(reject);
@@ -175,8 +174,8 @@ function writeSvgToPng(svg, job) {
 function loadSvg(job) {
     return new Promise((done, error) => {
         needle('get', url.resolve(location.href, `/viewer/getPage/${job.bookInfo.bookId}/${job.page}`))
-            .then(function(resp) { done(resp.body) })
-            .catch(function(err) { error(err) });
+            .then(function (resp) { done(resp.body) })
+            .catch(function (err) { error(err) });
     });
 }
 
@@ -190,8 +189,8 @@ async function getBookPage(job) {
 function getJson(path) {
     return new Promise((done, error) => {
         needle('post', url.resolve(location.href, path), {}, { json: true })
-            .then(function(resp) { done(resp.body) })
-            .catch(function(err) { error(err) })
+            .then(function (resp) { done(resp.body) })
+            .catch(function (err) { error(err) })
     });
 }
 
