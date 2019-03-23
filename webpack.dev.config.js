@@ -11,8 +11,15 @@ module.exports = {
     rules: [
       {
         test: /\.css$/,
-        use: [{ loader: 'style-loader' }, { loader: 'css-loader' }, { loader: 'postcss-loader' }],
-        include: defaultInclude
+        use: [
+          { loader: 'style-loader' },
+          { loader: 'css-loader' },
+          { loader: 'postcss-loader' }
+        ],
+        include: [
+          defaultInclude,
+          path.resolve(__dirname, 'node_modules')
+        ]
       },
       {
         test: /\.jsx?$/,
@@ -33,7 +40,9 @@ module.exports = {
   },
   target: 'electron-renderer',
   plugins: [
-    new HtmlWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: './src/assets/index.html'
+    }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development')
     })

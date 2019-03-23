@@ -1,16 +1,30 @@
-import '../assets/css/App.css'
-import React, { Component } from 'react'
 
-class App extends React.Component {
+import { Layout, Button, Row, Col } from 'antd';
+const { Sider, Content } = Layout;
+import React, { Component } from 'react'
+import './App.css';
+import Title from 'antd/lib/typography/Title';
+import { SideBar } from './SideBar/SideBar'
+
+class App extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      url: 'https://biblioclub.ru/index.php?page=main_ub_red&needauth=1'
+    };
+  }
+
   render() {
     return (
-      <div>
-        <h1>Hello, Electron!</h1>
-
-        <p>I hope you enjoy using basic-electron-react-boilerplate to start your dev off right!</p>
-      </div>
+      <Layout>
+        <Content>lorem</Content>
+        <SideBar />
+      </Layout>
     )
   }
+
+
 }
 
 export default App

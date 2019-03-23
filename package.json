@@ -43,12 +43,15 @@
     "postpackage": "electron-packager ./ --out=./builds"
   },
   "dependencies": {
+    "antd": "^3.15.1",
     "electron": "^4.0.0",
+    "lodash-es": "^4.17.11",
     "react": "^16.7.0",
     "react-dom": "^16.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.4",
     "babili-webpack-plugin": "^0.1.2",
