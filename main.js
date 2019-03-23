@@ -2,6 +2,7 @@
 
 // Import parts of electron to use
 const { app, BrowserWindow } = require('electron')
+const electron = require('electron')
 const path = require('path')
 const url = require('url')
 
@@ -24,6 +25,24 @@ if (process.platform === 'win32') {
 }
 
 function createWindow() {
+  // const WEB_FOLDER = 'web';
+  // const PROTOCOL = 'file';
+
+  // electron.protocol.interceptFileProtocol(PROTOCOL, (request, callback) => {
+  //     // // Strip protocol
+  //     let url = request.url.substr(PROTOCOL.length + 1);
+
+  //     // Build complete path for node require function
+  //     url = path.join(__dirname, WEB_FOLDER, url);
+
+  //     // Replace backslashes by forward slashes (windows)
+  //     // url = url.replace(/\\/g, '/');
+  //     url = path.normalize(url);
+
+  //     console.log(url);
+  //     callback({path: url});
+  // });
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 1024,
@@ -32,22 +51,11 @@ function createWindow() {
   })
 
   // and load the index.html of the app.
-  let indexPath
-
-  if (dev && process.argv.indexOf('--noDevServer') === -1) {
-    indexPath = url.format({
-      protocol: 'http:',
-      host: 'localhost:8080',
-      pathname: 'index.html',
-      slashes: true
-    })
-  } else {
-    indexPath = url.format({
-      protocol: 'file:',
-      pathname: path.join(__dirname, 'dist', 'index.html'),
-      slashes: true
-    })
-  }
+  const indexPath = url.format({
+    protocol: 'file:',
+    pathname: './dist/index.html',
+    slashes: true
+  })
 
   mainWindow.loadURL(indexPath)
 

@@ -37,17 +37,19 @@
   "main": "main.js",
   "scripts": {
     "prod": "webpack --mode production --config webpack.build.config.js && electron --noDevServer .",
-    "start": "webpack-dev-server --hot --host 0.0.0.0 --config=./webpack.dev.config.js --mode development",
+    "start": "webpack --watch --hot --host --config=./webpack.dev.config.js --mode development",
     "build": "webpack --config webpack.build.config.js --mode production",
     "package": "npm run build",
     "postpackage": "electron-packager ./ --out=./builds"
   },
   "dependencies": {
     "antd": "^3.15.1",
-    "electron": "^4.0.0",
+    "electron": "^4.1.1",
     "lodash-es": "^4.17.11",
     "react": "^16.7.0",
-    "react-dom": "^16.7.0"
+    "react-dom": "^16.7.0",
+    "react-redux": "^6.0.1",
+    "redux": "^4.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.2.2",
@@ -55,6 +57,7 @@
     "@babel/preset-react": "^7.0.0",
     "babel-loader": "^8.0.4",
     "babili-webpack-plugin": "^0.1.2",
+    "copy-webpack-plugin": "^5.0.2",
     "css-loader": "^2.0.2",
     "electron-packager": "^13.0.1",
     "file-loader": "^3.0.1",

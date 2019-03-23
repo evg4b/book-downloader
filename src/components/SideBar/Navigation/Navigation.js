@@ -69,6 +69,6 @@ export class Navigation extends Component {
 
   navigate = () => {
     const { site, url } = this.state;
-    console.log(resolve(SITE_URLS[site], url));
+    this.props.onNavigate(resolve(SITE_URLS[site], url))
   }
 }

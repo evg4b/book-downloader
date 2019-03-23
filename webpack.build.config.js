@@ -3,11 +3,15 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const BabiliPlugin = require('babili-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CopyPlugin = require('copy-webpack-plugin');
 
 // Any directories you will be adding code/files into, need to be added to this array so webpack will pick them up
 const defaultInclude = path.resolve(__dirname, 'src')
 
 module.exports = {
+  entry: {
+    app: path.resolve(__dirname, 'index.js')
+  },
   module: {
     rules: [
       {
@@ -17,7 +21,10 @@ module.exports = {
           'css-loader',
           'postcss-loader'
         ],
-        include: defaultInclude
+        include: [
+          defaultInclude,
+          path.resolve(__dirname, 'node_modules')
+        ]
       },
       {
         test: /\.jsx?$/,
@@ -50,7 +57,10 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('production')
     }),
-    new BabiliPlugin()
+    new BabiliPlugin(),
+    new CopyPlugin([
+      { context: './src/injectables', from: '*.js', to: 'dest/injectables' },
+    ])
   ],
   stats: {
     colors: true,

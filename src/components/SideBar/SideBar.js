@@ -1,36 +1,36 @@
-import React, { Component } from 'react'
-import { Layout, Button, Row, Col, Divider } from 'antd';
-const { Sider } = Layout;
-import './SideBar.css';
-import Title from 'antd/lib/typography/Title';
+import { Button, Divider, Layout, Row } from 'antd';
+import React, { Component } from 'react';
+import { Downloader } from './Downloader/Downloader';
 import { Navigation } from './Navigation/Navigation';
+import { SettingsModal } from './SettingsModal/SettingsModal';
+import './SideBar.css';
 
 export class SideBar extends Component {
 
+  state = {
+    settingsVisible: false
+  }
+
   render() {
     return (
-      <Sider width="400px" theme="light" className="app-sidebar">
-          <Row>
-            <Col className="gutter-row" span={12}>
-              <Title level={4}>
-                test
-              </Title>
-            </Col>
-            <Col className="gutter-row" span={12}>
-              <Button shape="circle" icon="setting"  />
-            </Col>
+      <Layout.Sider width="400px" theme="light" className="app-sidebar">
+          <Row style={{ textAlign: 'right' }}>
+              <Button shape="circle" icon="setting" onClick={() => this.setState({ settingsVisible: true })}  />
           </Row>
           <Divider orientation="left">Навигация</Divider>
           <Row>
-            <Navigation />
+            <Navigation
+              onNavigate={this.props.onNavigate}
+              onBack={this.props.onBack}
+              onForward={this.props.onForward}
+            />
           </Row>
           <Divider orientation="left">Скачивание</Divider>
           <Row>
-            <Navigation />
+            <Downloader />
           </Row>
-      </Sider>
+          <SettingsModal visible={this.state.settingsVisible} onClose={() => this.setState({ settingsVisible: false })} />
+      </Layout.Sider>
     )
   }
-
-
 }

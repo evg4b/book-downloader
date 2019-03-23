@@ -12,3 +12,8 @@ export const SITE_NAMES = {
   [SITES.BIBLIO_ONLINE]: 'Biblio-Online.ru',
   [SITES.BIBLIOCLUB]: 'BiblioClub.ru',
 }
+
+export const INJECTABLE_SCRIPT = {
+  [SITES.BIBLIO_ONLINE]: 'Biblio-Online.ru',
+  [SITES.BIBLIOCLUB]: 'BiblioClub.ru',
+}
