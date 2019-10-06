@@ -27,13 +27,9 @@ const modules = {
     'biblioclub.ru': {
         getBookInformation: () => {
             const bookId = _.get(QueryString.parse(location.search), 'book_id');
-            const pn_last = _.first(jQuery("#pn_last"));
+            const pn_last = _.first(jQuery(".num-page-box .num"));
             if (bookId && pn_last) {
-                const regexp = /toPage\s*\(\s*(\d*)\s*\)/;
-                const pageMatcher = _.get(jQuery(pn_last).data("events"), 'click')
-                    .map((item) => item.handler.toString().match(regexp))
-                    .find((item) => !!item);
-                const maxPage = Number(pageMatcher[1]);
+                const maxPage = Number(_.trim(pn_last.innerText, '/\\ '));
                 return {
                     maxPage: maxPage,
                     bookId: bookId
