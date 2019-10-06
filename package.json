@@ -1,7 +1,7 @@
 {
   "name": "biblioclub-grabber",
   "productName": "BiblioclubGrabber",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Biblioclub Grabber",
   "main": "src/main.js",
   "scripts": {
@@ -29,7 +29,7 @@
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "npm"
+        "packageManager": "yarn"
       },
       "electronWinstallerConfig": {
         "name": "biblioclub_grabber"

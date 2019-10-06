@@ -11,10 +11,11 @@ app.on('ready', () => {
         minHeight: 500,
         minWidth: 840
     });
-    mainWindow.setMenu(Menu.buildFromTemplate([
-        { label: 'Main DevTools', click: () => mainWindow.webContents.openDevTools() },
-        { label: 'VebView DevTools' }
-    ]));
+    mainWindow.setMenu(null);
+    // mainWindow.setMenu(Menu.buildFromTemplate([
+    //     { label: 'Main DevTools', click: () => mainWindow.webContents.openDevTools() },
+    //     { label: 'VebView DevTools' }
+    // ]));
     mainWindow.loadURL(
         url.format({
             pathname: path.join(__dirname, "index.html"),
